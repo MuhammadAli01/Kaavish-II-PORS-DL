@@ -7,12 +7,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 from torch.autograd import Variable
+from sklearn.metrics import confusion_matrix
+from torch.utils.tensorboard import SummaryWriter
+from datetime import datetime
+
 from config import *
 from utils import *
 from data import Fashion_attr_prediction, Fashion_inshop
 from net import f_model
-
-from sklearn.metrics import confusion_matrix
 
 
 data_transform_train = transforms.Compose([
@@ -33,7 +35,7 @@ data_transform_test = transforms.Compose([
 
 train_loader = torch.utils.data.DataLoader(
     Fashion_attr_prediction(type="train", transform=data_transform_train),
-    batch_size=TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+    batch_size=TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, drop_last=True
 )
 
 test_loader = torch.utils.data.DataLoader(
@@ -55,6 +57,8 @@ if ENABLE_INSHOP_DATASET:
 model = f_model(freeze_param=FREEZE_PARAM, model_path=DUMPED_MODEL).cuda(GPU_ID)
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=LR, momentum=MOMENTUM)
 
+writer = SummaryWriter(log_dir=f"runs/transfer/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{datetime.now().strftime('%b%d_%H-%M-%S')}")
+
 
 def train(epoch):
     model.train()
@@ -67,6 +71,10 @@ def train(epoch):
     triplet_type = 0
     if ENABLE_INSHOP_DATASET:
         triplet_in_shop_loader_iter = iter(triplet_in_shop_loader)
+
+    running_loss = 0.0
+    running_correct = 0
+
     for batch_idx, (data, target) in enumerate(train_loader):
         if batch_idx % TEST_INTERVAL == 0:
             print(f'Test() called at batch_idx: {batch_idx}')
@@ -76,6 +84,10 @@ def train(epoch):
         optimizer.zero_grad()
         outputs = model(data)[0]
         classification_loss = criterion_c(outputs, target)
+
+        pred = outputs.data.max(1, keepdim=True)[1]  # Tensor of dim (test_batch_size, 1)
+        running_correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+
         if TRIPLET_WEIGHT:
             if ENABLE_INSHOP_DATASET and random.random() < INSHOP_DATASET_PRECENT:
                 triplet_type = 1
@@ -104,8 +116,12 @@ def train(epoch):
             loss = classification_loss + triplet_loss * TRIPLET_WEIGHT
         else:
             loss = classification_loss
+
         loss.backward()
         optimizer.step()
+
+        running_loss += loss.data * TRAIN_BATCH_SIZE
+
         if batch_idx % LOG_INTERVAL == 0:
             if TRIPLET_WEIGHT:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tAll Loss: {:.4f}\t'
@@ -119,6 +135,14 @@ def train(epoch):
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tClassification Loss: {:.4f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader), loss.data))
+
+            step_no = (epoch - 1) * len(train_loader) + batch_idx
+            writer.add_scalar('Loss/train', running_loss, step_no)
+            writer.add_scalar('Accuracy/train',
+                              float(100. * running_correct / (LOG_INTERVAL * TRAIN_BATCH_SIZE)),
+                              step_no)
+            running_loss, running_correct = 0.0, 0
+
         if batch_idx and batch_idx % DUMP_INTERVAL == 0:
             print('Model saved to {}'.format(dump_model(model, epoch, batch_idx)))
 
@@ -127,7 +151,8 @@ def train(epoch):
 
 def test():
     model.eval()  # Tells model you are testing
-    criterion = nn.CrossEntropyLoss(size_average=False)
+    # criterion = nn.CrossEntropyLoss(size_average=False)
+    criterion = nn.CrossEntropyLoss(reduction='sum')
     test_loss = 0
     correct = 0
     for batch_idx, (data, target) in enumerate(test_loader):
@@ -152,6 +177,8 @@ def test():
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         float(test_loss), correct, (TEST_BATCH_COUNT * TEST_BATCH_SIZE),
         float(100. * correct / (TEST_BATCH_COUNT * TEST_BATCH_SIZE))))
+    # tb.add_scalar('Loss/test', test_loss, )
+
 
 def get_conf_matrix():
     model.eval()  # Tells model that you're testing
