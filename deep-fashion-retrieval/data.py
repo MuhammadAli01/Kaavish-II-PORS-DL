@@ -63,7 +63,6 @@ class Fashion_attr_prediction(data.Dataset):
     def read_partition_category(self):
         list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition.txt')
         list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img.txt')
-        # list_category_img = os.path.join(DATASET_BASE, r'list_category_img.txt')
         partition_pairs = self.read_lines(list_eval_partition)
         category_img_pairs = self.read_lines(list_category_img)
         for k, v in category_img_pairs:

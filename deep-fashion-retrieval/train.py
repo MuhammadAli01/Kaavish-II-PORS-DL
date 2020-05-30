@@ -57,7 +57,7 @@ if ENABLE_INSHOP_DATASET:
 model = f_model(freeze_param=FREEZE_PARAM, model_path=DUMPED_MODEL).cuda(GPU_ID)
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=LR, momentum=MOMENTUM)
 
-writer = SummaryWriter(log_dir=f"runs/transfer/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{datetime.now().strftime('%b%d_%H-%M-%S')}")
+writer = SummaryWriter(log_dir=f"runs/transfer/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/30 epochs/{datetime.now().strftime('%b%d_%H-%M-%S')}")
 
 
 def train(epoch):
@@ -76,9 +76,6 @@ def train(epoch):
     running_correct = 0
 
     for batch_idx, (data, target) in enumerate(train_loader):
-        if batch_idx % TEST_INTERVAL == 0:
-            print(f'Test() called at batch_idx: {batch_idx}')
-            test()
         data, target = data.cuda(GPU_ID), target.cuda(GPU_ID)
         data, target = Variable(data), Variable(target)
         optimizer.zero_grad()
@@ -137,11 +134,18 @@ def train(epoch):
                            100. * batch_idx / len(train_loader), loss.data))
 
             step_no = (epoch - 1) * len(train_loader) + batch_idx
-            writer.add_scalar('Loss/train', running_loss, step_no)
+            writer.add_scalar('Loss/train',
+                              running_loss / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
+                              step_no)
             writer.add_scalar('Accuracy/train',
                               float(100. * running_correct / (LOG_INTERVAL * TRAIN_BATCH_SIZE)),
                               step_no)
             running_loss, running_correct = 0.0, 0
+
+        if batch_idx % TEST_INTERVAL == 0:
+            step_no = (epoch - 1) * len(train_loader) + batch_idx
+            # print(f'Test() called at step_no: {step_no}')
+            test(step_no, full=True)
 
         if batch_idx and batch_idx % DUMP_INTERVAL == 0:
             print('Model saved to {}'.format(dump_model(model, epoch, batch_idx)))
@@ -149,45 +153,47 @@ def train(epoch):
     print('Model saved to {}'.format(dump_model(model, epoch)))
 
 
-def test():
+def test(step_no, full=False):
     model.eval()  # Tells model you are testing
+    # print(f"len(test_loader): {len(test_loader)}")
     # criterion = nn.CrossEntropyLoss(size_average=False)
     criterion = nn.CrossEntropyLoss(reduction='sum')
     test_loss = 0
     correct = 0
+
+    if full:
+        test_batch_count = len(test_loader)
+    else:
+        test_batch_count = TEST_BATCH_COUNT
+
     for batch_idx, (data, target) in enumerate(test_loader):
         # print(f'batch_idx: {batch_idx}')
         data, target = data.cuda(GPU_ID), target.cuda(GPU_ID)
         data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)[0]  # Tensor of dim (test_batch_size, num_classes)
-        # print(f'data.item: {criterion(output, target).data.item()}, {type(criterion(output, target).data.item())}')
-        # test_loss += criterion(output, target).data[0]
-        # print(f'output shape: {output.shape}')
-        # print(f'target shape: {target.shape}')
-        # print(f'output: {output}')
-        # print(f'target: {target}')  # 1D tensor of dim (num_classes)
+        output = model(data)[0]  # Tensor of dim (test_batch_size, num_classes))
         test_loss += criterion(output, target).data
         pred = output.data.max(1, keepdim=True)[1]  # Tensor of dim (test_batch_size, 1)
-        # print(f'pred shape: {pred.shape}')
-        # print(f'pred type: {type(pred)}')
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
-        if batch_idx > TEST_BATCH_COUNT:
+        if batch_idx > test_batch_count:
             break
-    test_loss /= (TEST_BATCH_COUNT * TEST_BATCH_SIZE)
+    test_loss /= (test_batch_count * TEST_BATCH_SIZE)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        float(test_loss), correct, (TEST_BATCH_COUNT * TEST_BATCH_SIZE),
-        float(100. * correct / (TEST_BATCH_COUNT * TEST_BATCH_SIZE))))
-    # tb.add_scalar('Loss/test', test_loss, )
+        float(test_loss), correct, (test_batch_count * TEST_BATCH_SIZE),
+        float(100. * correct / (test_batch_count * TEST_BATCH_SIZE))))
+
+    writer.add_scalar('Loss/test', test_loss, step_no)
+    writer.add_scalar('Accuracy/test',
+                      float(100. * correct / (test_batch_count * TEST_BATCH_SIZE)),
+                      step_no)
 
 
 def get_conf_matrix():
     model.eval()  # Tells model that you're testing
-    criterion = nn.CrossEntropyLoss(size_average=False)
+    criterion = nn.CrossEntropyLoss()
     test_loss = 0
     correct = 0
     print(f'dataset: {test_loader.dataset}')
     print(f'dataset len: {len(test_loader.dataset)}')
-    # print(f'dataset targets: {test_loader.dataset.targets}')
 
     all_preds = torch.tensor([])
     all_targets = torch.tensor([])
