@@ -37,6 +37,7 @@ train_loader = torch.utils.data.DataLoader(
     Fashion_attr_prediction(type="train", transform=data_transform_train),
     batch_size=TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, drop_last=True
 )
+print(f"len(train_loader): {len(train_loader)}")
 
 test_loader = torch.utils.data.DataLoader(
     Fashion_attr_prediction(type="test", transform=data_transform_test),
@@ -57,7 +58,7 @@ if ENABLE_INSHOP_DATASET:
 model = f_model(freeze_param=FREEZE_PARAM, model_path=DUMPED_MODEL).cuda(GPU_ID)
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=LR, momentum=MOMENTUM)
 
-writer = SummaryWriter(log_dir=f"runs/transfer/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/30 epochs/{datetime.now().strftime('%b%d_%H-%M-%S')}")
+writer = SummaryWriter(log_dir=f"runs/transfer/50_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/30 epochs/{datetime.now().strftime('%b%d_%H-%M-%S')}")
 
 
 def train(epoch):

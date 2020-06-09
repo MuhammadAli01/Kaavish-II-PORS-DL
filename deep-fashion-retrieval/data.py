@@ -67,12 +67,13 @@ class Fashion_attr_prediction(data.Dataset):
         category_img_pairs = self.read_lines(list_category_img)
         for k, v in category_img_pairs:
             v = int(v)
+            self.anno[k] = v - 1
             # if v <= 20:
             #     self.anno[k] = v - 1
-            if v in ALLOWED_CATEGORIES:
-                # self.anno[k] = v - 1    # image_name: category_id-1
-                self.anno[k] = CATEGORY_TO_INDEX[v]
-                # print(f'v was {v}, saved val is {self.anno[k]}')
+            # if v in ALLOWED_CATEGORIES:
+            #     # self.anno[k] = v - 1    # image_name: category_id-1
+            #     self.anno[k] = CATEGORY_TO_INDEX[v]
+            #     # print(f'v was {v}, saved val is {self.anno[k]}')
         # print(f'self.anno: {self.anno}')
         for k, v in partition_pairs:
             if k in self.anno:
