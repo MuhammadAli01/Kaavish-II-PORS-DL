@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import numpy
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
@@ -18,6 +18,7 @@ class f_model(nn.Module):
         self.backbone = torchvision.models.resnet50(pretrained=True)
         state_dict = self.backbone.state_dict()
         num_features = self.backbone.fc.in_features
+        # print(f"num_features: {num_features}")
         # print(f'a: {self.backbone}')
         self.backbone = nn.Sequential(*list(self.backbone.children())[:-2])
         # print(f'b: {self.backbone}')

@@ -73,6 +73,8 @@ def train(epoch):
     if ENABLE_INSHOP_DATASET:
         triplet_in_shop_loader_iter = iter(triplet_in_shop_loader)
 
+    TEST_INTERVAL = len(train_loader)
+
     running_loss = 0.0
     running_correct = 0
 
@@ -129,6 +131,12 @@ def train(epoch):
                     100. * batch_idx / len(train_loader), loss.data, triplet_type,
                     # triplet_loss.data[0], classification_loss.data[0]))
                     triplet_loss.data.item(), classification_loss.data.item()))
+                writer.add_scalar('Loss/triplet',
+                                  triplet_loss.data.item() / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
+                                  step_no)
+                writer.add_scalar('Loss/classification',
+                                  classification_loss.data.item() / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
+                                  step_no)
             else:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tClassification Loss: {:.4f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),

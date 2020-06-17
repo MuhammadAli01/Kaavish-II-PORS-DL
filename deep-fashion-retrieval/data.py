@@ -68,13 +68,14 @@ class Fashion_attr_prediction(data.Dataset):
         for k, v in category_img_pairs:
             v = int(v)
             self.anno[k] = v - 1
+            # Uncomment section if you only want to train on first 20 categories
             # if v <= 20:
             #     self.anno[k] = v - 1
+            # Uncomment section if you only want to train on ALLOWED_CATEGORIES
             # if v in ALLOWED_CATEGORIES:
             #     # self.anno[k] = v - 1    # image_name: category_id-1
             #     self.anno[k] = CATEGORY_TO_INDEX[v]
             #     # print(f'v was {v}, saved val is {self.anno[k]}')
-        # print(f'self.anno: {self.anno}')
         for k, v in partition_pairs:
             if k in self.anno:
                 if v == "train":
@@ -89,7 +90,6 @@ class Fashion_attr_prediction(data.Dataset):
         # print('train_list: ', self.train_list)
         # print('test_list: ', self.test_list)
         # print('all_list: ', self.all_list)
-
         random.shuffle(self.train_list)
         random.shuffle(self.test_list)
         random.shuffle(self.all_list)
@@ -123,7 +123,10 @@ class Fashion_attr_prediction(data.Dataset):
                 img = img.convert('RGB')
         if self.crop:
             # x1, y1, x2, y2 = self.bbox[img_path]
-            x1, y1, x2, y2 = [int(x) for x in self.bbox[img_path]]
+            if img_path in self.bbox:
+                x1, y1, x2, y2 = [int(x) for x in self.bbox[img_path]]
+            else:
+                x1, y1, x2, y2 = 0, 0, img.size[0], img.size[1]
             # print(x1, y1, x2, y2)
             if x1 < x2 <= img.size[0] and y1 < y2 <= img.size[1]:
                 img = img.crop((x1, y1, x2, y2))
