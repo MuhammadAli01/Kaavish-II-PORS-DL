@@ -68,9 +68,32 @@ def dump_dataset(loader, classes, deep_feats, color_feats, labels):
             print("{} / {}".format(batch_idx * EXTRACT_BATCH_SIZE, len(loader.dataset)))
 
 
+def dump(custom=False, inshop_test=False):
+    print(f'dump function called with custom: {custom} and inshop_test: {inshop_test}')
+    if inshop_test:
+        all_loader = torch.utils.data.DataLoader(
+            Fashion_attr_prediction(type="all", transform=data_transform_test, custom=True, crop=True),
+            batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+        )
+        classes = []
+        deep_feats = []
+        color_feats = []
+        labels = []
+        dump_dataset(all_loader, classes, deep_feats, color_feats, labels)
 
-def dump(custom=False):
-    print(f'dump function called with custom: {custom}')
+        class_all = os.path.join(DATASET_BASE, 'custom_all_class.npy')
+        feat_all = os.path.join(DATASET_BASE, 'custom_all_feat.npy')
+        color_feat_all = os.path.join(DATASET_BASE, 'custom_all_color_feat.npy')
+        feat_list = os.path.join(DATASET_BASE, 'custom_all_feat.list')
+        with open(feat_list, "w") as fw:
+            fw.write("\n".join(labels))
+
+        np.save(class_all, np.vstack(classes))
+        np.save(feat_all, np.vstack(deep_feats))
+        np.save(color_feat_all, np.vstack(color_feats))
+        print(
+            "Dumped to custom_all_class.npy, custom_all_feat.npy, custom_all_color_feat.npy and custom_all_feat.list.")
+
     if not custom:
         all_loader = torch.utils.data.DataLoader(
             Fashion_attr_prediction(type="all", transform=data_transform_test),
@@ -109,13 +132,6 @@ def dump(custom=False):
         color_feats = []
         labels = []
         dump_dataset(all_loader, classes, deep_feats, color_feats, labels)
-
-        # if ENABLE_INSHOP_DATASET:
-        #     inshop_loader = torch.utils.data.DataLoader(
-        #         Fashion_inshop(type="all", transform=data_transform_test),
-        #         batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
-        #     )
-        #     dump_dataset(inshop_loader, deep_feats, color_feats, labels)
 
         class_all = os.path.join(DATASET_BASE, 'custom_all_class.npy')
         feat_all = os.path.join(DATASET_BASE, 'custom_all_feat.npy')

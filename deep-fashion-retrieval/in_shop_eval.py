@@ -19,15 +19,15 @@ def eval(retrieval_top_n=10):
 
     count_retrieved = 0
     for iter_id, item_id in enumerate(dataset.test_list):
-        # print(f'item_id: {item_id}')
+        print(f'item_id: {item_id}')
         item_imgs = dataset.test_dict[item_id]
-        # print(f'item_imgs: {item_imgs}')  # list of imgs of item with id item_id.
+        print(f'item_imgs: {item_imgs}')  # list of imgs of item with id item_id.
         item_img = random.choice(item_imgs)
         result = get_deep_color_top_n(feat_dict[item_img], deep_feats, color_feats, labels, retrieval_top_n)
         print(f'result: {result}')
         keys = list(map(lambda x: x[0], result))
         included = list(map(lambda x: x in item_imgs, keys))
-        # print(f'included: {included}', '\n')
+        print(f'included: {included}', '\n')
 
         if included.count(True) >= 2:
             count_retrieved += 1
