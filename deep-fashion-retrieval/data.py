@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import torch.utils.data as data
 import torch
-from config import *
 import os
 from PIL import Image
 import random
 
-ALLOWED_CATEGORIES = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 26, 29, 32, 34, 35, 36, 39, 47]
-CATEGORY_TO_INDEX = {cat: i for i, cat in enumerate(ALLOWED_CATEGORIES)}
+from config import *
+
+# ALLOWED_CATEGORIES = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 26, 29, 32, 34, 35, 36, 39, 47]
+# CATEGORY_TO_INDEX = {cat: i for i, cat in enumerate(ALLOWED_CATEGORIES)}
 
 class Fashion_attr_prediction(data.Dataset):
     def __init__(self, type="train", transform=None, target_transform=None, crop=False, img_path=None, custom=False):
@@ -194,10 +196,10 @@ class Fashion_inshop(data.Dataset):
         self.test_query_dict = {}
         self.test_gallery_dict = {}
         self.train_list = []  # Stores item ids eg id_00000001.
-        self.test_list = []
+        # self.test_list = []
         # self.test_query_list = []
         self.test_query_paths_list = []  # List of paths of query imgs
-        self.test_gallery_list = []
+        self.test_gallery_paths_list = []
         self.all_path = []
         self.cloth = self.readcloth()
         self.read_train_test()
@@ -248,24 +250,27 @@ class Fashion_inshop(data.Dataset):
         # self.train_list, self.test_list = list(self.train_dict.keys()), list(self.test_dict.keys())
         self.train_list = list(self.train_dict.keys())
         # self.test_query_list = list(self.test_query_dict.keys())
-        self.test_gallery_list = list(self.test_gallery_dict.keys())
+        # self.test_gallery_list = list(self.test_gallery_dict.keys())
         # print(f"len(self.test_query_list): {len(self.test_query_list)}")
         # print(f"len(self.test_gallery_list): {len(self.test_gallery_list)}")
 
         for v in self.train_dict.values():
             self.all_path += v
-        self.train_len = len(self.all_path)
+        # self.train_len = len(self.all_path)
         # print(f"self.train_len{self.train_len}")
         # for v in list(self.test_dict.values()):
         #     self.all_path += v
         for v in self.test_query_dict.values():
             self.all_path += v
             self.test_query_paths_list += v
-        self.test_query_len = len(self.all_path) - self.train_len
+        # self.test_query_len = len(self.all_path) - self.train_len
+        # self.test_query_len = len(self.test_query_paths_list)
         # print(f"self.test_query_len{self.test_query_len}")
         for v in self.test_gallery_dict.values():
             self.all_path += v
-        self.test_gallery_len = len(self.all_path) - self.train_len - self.test_query_len
+            self.test_gallery_paths_list += v
+        # self.test_gallery_len = len(self.all_path) - self.train_len - self.test_query_len
+        # self.test_gallery_len = len(self.test_gallery_paths_list)
         # print(f"self.test_gallery_len{self.test_gallery_len}")
         # self.test_len = len(self.all_path) - self.train_len
 
@@ -281,9 +286,12 @@ class Fashion_inshop(data.Dataset):
     def __len__(self):
         if self.type == 'train':
             return len(self.train_list)
-        elif self.type == 'test':
+        elif self.type == 'test_query':
             # return len(self.test_list)
             return len(self.test_query_paths_list)
+        elif self.type == 'test_gallery':
+            # return len(self.test_list)
+            return len(self.test_gallery_paths_list)
         else:
             return len(self.all_path)
 
@@ -303,9 +311,13 @@ class Fashion_inshop(data.Dataset):
             img_other = random.choice(s_d[s_l[img_other_id]])
             img_triplet.append(img_other)
             return list(map(self.process_img, img_triplet))  # Returns list of 2 +ve & 1 -ve img.
-        else:
-            # For self.type == 'test'
+        elif self.type == 'test_query':
             img_path = self.test_query_paths_list[item]
+            img = self.process_img(img_path)
+            return img, img_path
+        else:
+            # For self.type == 'test_gallery'
+            img_path = self.test_gallery_paths_list[item]
             img = self.process_img(img_path)
             return img, img_path
 

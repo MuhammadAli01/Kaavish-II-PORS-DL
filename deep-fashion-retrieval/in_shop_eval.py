@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from data import Fashion_inshop
 from retrieval import load_feat_db, get_deep_color_top_n
-import random
 
 
 def eval(retrieval_top_n=10):
