@@ -76,17 +76,19 @@ def dump(custom=False):
             Fashion_attr_prediction(type="all", transform=data_transform_test),
             batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
         )
+        classes = []
         deep_feats = []
         color_feats = []
         labels = []
-        dump_dataset(all_loader, deep_feats, color_feats, labels)
+        # dump_dataset(all_loader, deep_feats, color_feats, labels)
+        dump_dataset(all_loader, classes, deep_feats, color_feats, labels)
 
         if ENABLE_INSHOP_DATASET:
             inshop_loader = torch.utils.data.DataLoader(
                 Fashion_inshop(type="all", transform=data_transform_test),
                 batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
             )
-            dump_dataset(inshop_loader, deep_feats, color_feats, labels)
+            dump_dataset(inshop_loader, classes, deep_feats, color_feats, labels)
 
         feat_all = os.path.join(DATASET_BASE, 'all_feat.npy')
         color_feat_all = os.path.join(DATASET_BASE, 'all_color_feat.npy')

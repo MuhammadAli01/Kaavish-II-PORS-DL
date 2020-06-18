@@ -191,8 +191,8 @@ class Fashion_inshop(data.Dataset):
         self.type = type
         self.train_dict = {}
         self.test_dict = {}
-        self.train_list = []
-        self.test_list = []
+        self.train_list = []  # Stores item ids eg id_00000001.
+        self.test_list = []  # Stores item ids eg id_00000001.
         self.all_path = []
         self.cloth = self.readcloth()
         self.read_train_test()
@@ -206,8 +206,11 @@ class Fashion_inshop(data.Dataset):
 
     def readcloth(self):
         lines = self.read_lines(os.path.join(DATASET_BASE, 'in_shop', 'list_bbox_inshop.txt'))
-        valid_lines = list(filter(lambda x: x[1] == '1', lines))
-        names = set(list(map(lambda x: x[0], valid_lines)))
+        if CATEGORIES == 20:  # Only read tops
+            valid_lines = list(filter(lambda x: x[1] == '1', lines))
+            names = set(list(map(lambda x: x[0], valid_lines)))
+        else:  # Read clothes of all 3 types (upper-body clothes, lower-body clothes, full-body clothes)
+            names = set(x[0] for x in lines)
         return names
 
     # def read_train_test(self):
@@ -226,10 +229,9 @@ class Fashion_inshop(data.Dataset):
         for line in valid_lines:
             s = self.train_dict if line[2] == 'train' else self.test_dict
             if line[1] not in s:
-                s[line[1]] = [line[0]]  # item_id: img_paths
+                s[line[1]] = [line[0]]  # item_id: list of img_paths
             else:
                 s[line[1]].append(line[0])
-
 
         def clear_single(d):  # If only single image for id, delete that id from dict
             keys_to_delete = []
@@ -277,4 +279,4 @@ class Fashion_inshop(data.Dataset):
         img_other_id = random.choice(list(range(0, item)) + list(range(item + 1, len(s_l))))
         img_other = random.choice(s_d[s_l[img_other_id]])
         img_triplet.append(img_other)
-        return list(map(self.process_img, img_triplet))
+        return list(map(self.process_img, img_triplet))  # Returns list of 2 +ve & 1 -ve img.
