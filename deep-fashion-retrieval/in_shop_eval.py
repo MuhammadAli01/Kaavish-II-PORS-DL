@@ -3,6 +3,7 @@
 import random
 import os
 
+from config import *
 from data import Fashion_inshop
 from feaure_extractor import dump_inshop_test_db
 from retrieval import get_deep_color_top_n

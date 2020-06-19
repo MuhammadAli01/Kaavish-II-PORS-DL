@@ -2,6 +2,7 @@
 
 import os
 import argparse
+
 from config import *
 from utils import *
 from torch.autograd import Variable
@@ -43,8 +44,7 @@ def dump_dataset(loader, classes, deep_feats, color_feats, labels):
     for batch_idx, (data, data_path) in enumerate(loader):
         # print(f'batch_idx: {batch_idx}')
         # print(f'data.shape: {data.shape}')
-        print(f'data_path[0]: {data_path[0]}')
-        print(f'len(data_path): {len(data_path)}')
+        # print(f'data_path[0]: {data_path[0]}')
 
         data = Variable(data).cuda(GPU_ID)
         cls, deep_feat, color_feat = extractor(data)  # color_feat is list ndarrays, other two are ndarrays
@@ -125,7 +125,7 @@ def dump(custom=False):
 
 def dump_inshop_test_db():
     inshop_test_loader = torch.utils.data.DataLoader(
-        Fashion_inshop(type="train_gallery", transform=data_transform_test),
+        Fashion_inshop(type="test_gallery", transform=data_transform_test),
         batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
     )
     classes = []
