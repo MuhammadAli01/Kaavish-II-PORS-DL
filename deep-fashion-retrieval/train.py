@@ -15,6 +15,7 @@ from config import *
 from utils import *
 from data import Fashion_attr_prediction, Fashion_inshop
 from net import f_model
+from in_shop_eval import eval
 
 
 data_transform_train = transforms.Compose([

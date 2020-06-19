@@ -256,7 +256,7 @@ class Fashion_inshop(data.Dataset):
 
         for v in self.train_dict.values():
             self.all_path += v
-        # self.train_len = len(self.all_path)
+        self.train_len = len(self.all_path)
         # print(f"self.train_len{self.train_len}")
         # for v in list(self.test_dict.values()):
         #     self.all_path += v
@@ -264,13 +264,13 @@ class Fashion_inshop(data.Dataset):
             self.all_path += v
             self.test_query_paths_list += v
         # self.test_query_len = len(self.all_path) - self.train_len
-        # self.test_query_len = len(self.test_query_paths_list)
+        self.test_query_len = len(self.test_query_paths_list)
         # print(f"self.test_query_len{self.test_query_len}")
         for v in self.test_gallery_dict.values():
             self.all_path += v
             self.test_gallery_paths_list += v
         # self.test_gallery_len = len(self.all_path) - self.train_len - self.test_query_len
-        # self.test_gallery_len = len(self.test_gallery_paths_list)
+        self.test_gallery_len = len(self.test_gallery_paths_list)
         # print(f"self.test_gallery_len{self.test_gallery_len}")
         # self.test_len = len(self.all_path) - self.train_len
 
