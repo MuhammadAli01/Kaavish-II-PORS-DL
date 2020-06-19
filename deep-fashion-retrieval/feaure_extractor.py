@@ -123,27 +123,54 @@ def dump(custom=False):
         np.save(color_feat_all, np.vstack(color_feats))
         print("Dumped to custom_all_class.npy, custom_all_feat.npy, custom_all_color_feat.npy and custom_all_feat.list.")
 
+
 def dump_inshop_test_db():
-    inshop_test_loader = torch.utils.data.DataLoader(
-        Fashion_inshop(type="test_gallery", transform=data_transform_test),
-        batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
-    )
-    classes = []
-    deep_feats = []
-    color_feats = []
-    labels = []
-    dump_dataset(inshop_test_loader, classes, deep_feats, color_feats, labels)
+    for dataset_type in ("test_gallery", "test_query"):
+        loader = torch.utils.data.DataLoader(
+            Fashion_inshop(type=dataset_type, transform=data_transform_test),
+            batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+        )
 
-    feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_feat.npy')
-    color_feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_color_feat.npy')
-    feat_list = os.path.join(DATASET_BASE, 'inshop_test_all_feat.list')
-    with open(feat_list, "w") as fw:
-        fw.write("\n".join(labels))
+        classes = []
+        deep_feats = []
+        color_feats = []
+        labels = []
+        dump_dataset(loader, classes, deep_feats, color_feats, labels)
 
-    np.save(feat_all, np.vstack(deep_feats))
-    np.save(color_feat_all, np.vstack(color_feats))
-    print("In-shop test dataset dumped to inshop_test_all_feat.npy, inshop_test_all_color_feat.npy and "
-          "inshop_test_all_feat.list.")
+        feat_all = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.npy')
+        color_feat_all = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_color_feat.npy')
+        feat_list = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.list')
+        with open(feat_list, "w") as fw:
+            fw.write("\n".join(labels))
+
+        np.save(feat_all, np.vstack(deep_feats))
+        np.save(color_feat_all, np.vstack(color_feats))
+        print(f"In-shop {dataset_type} dataset dumped to inshop_{dataset_type}_all_feat.npy, "
+              f"inshop_{dataset_type}_all_color_feat.npy and inshop_{dataset_type}_all_feat.list.")
+
+
+# Only dumps test_gallery
+# def dump_inshop_test_db():
+#     inshop_test_loader = torch.utils.data.DataLoader(
+#         Fashion_inshop(type="test_gallery", transform=data_transform_test),
+#         batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+#     )
+#     classes = []
+#     deep_feats = []
+#     color_feats = []
+#     labels = []
+#     dump_dataset(inshop_test_loader, classes, deep_feats, color_feats, labels)
+#
+#     feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_feat.npy')
+#     color_feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_color_feat.npy')
+#     feat_list = os.path.join(DATASET_BASE, 'inshop_test_all_feat.list')
+#     with open(feat_list, "w") as fw:
+#         fw.write("\n".join(labels))
+#
+#     np.save(feat_all, np.vstack(deep_feats))
+#     np.save(color_feat_all, np.vstack(color_feats))
+#     print("In-shop test dataset dumped to inshop_test_all_feat.npy, inshop_test_all_color_feat.npy and "
+#           "inshop_test_all_feat.list.")
 
 
 if __name__ == "__main__":

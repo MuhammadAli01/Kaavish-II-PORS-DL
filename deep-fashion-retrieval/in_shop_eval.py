@@ -29,8 +29,8 @@ def load_inshop_test_db():
 
 
 def eval(retrieval_top_n=10):
-    dataset = Fashion_inshop()
-    length = dataset.test_len
+    dataset = Fashion_inshop(type="test_query")
+    length = len(dataset)
     deep_feats, color_feats, labels = load_inshop_test_db()
     deep_feats, color_feats, labels = deep_feats[-length:], color_feats[-length:], labels[-length:]
     feat_dict = {labels[i]: (deep_feats[i], color_feats[i]) for i in range(len(labels))}
@@ -41,11 +41,11 @@ def eval(retrieval_top_n=10):
     should_include_times = 0
 
     count_retrieved = 0
-    for iter_id, item_id in enumerate(dataset.test_list):
-        print(f'item_id: {item_id}')
-        item_imgs = dataset.test_dict[item_id]
-        print(f'item_imgs: {item_imgs}')  # list of imgs of item with id item_id.
-        item_img = random.choice(item_imgs)
+    for iter_id, (img, img_path) in enumerate(dataset):
+        # print(f'item_id: {item_id}')
+        # item_imgs = dataset.test_dict[item_id]
+        # print(f'item_imgs: {item_imgs}')  # list of imgs of item with id item_id.
+        # item_img = random.choice(item_imgs)
         result = get_deep_color_top_n(feat_dict[item_img], deep_feats, color_feats, labels, retrieval_top_n)
         print(f'result: {result}')
         keys = list(map(lambda x: x[0], result))
