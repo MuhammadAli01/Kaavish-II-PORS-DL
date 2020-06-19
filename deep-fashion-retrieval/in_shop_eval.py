@@ -2,6 +2,7 @@
 
 import random
 import os
+import numpy as np
 
 from config import *
 from data import Fashion_inshop
@@ -13,14 +14,13 @@ from utils import timer_with_task
 @timer_with_task("Loading in-shop test feature database")
 def load_inshop_test_db():
     feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_feat.npy')
-    color_feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_color_feat.npy')
+    color_feat = os.path.join(DATASET_BASE, 'inshop_test_all_color_feat.npy')
     feat_list = os.path.join(DATASET_BASE, 'inshop_test_all_feat.list')
 
-    if not all([os.path.exists(f) for f in [feat_all, color_feat_all, feat_list]]):
-        print("In-shop test db not found. Creating db.")
+    if not all([os.path.exists(f) for f in [feat_all, color_feat, feat_list]]):
+        print("In-shop test database not found. Creating db.")
         dump_inshop_test_db()
 
-    print("Loading in-shop test db.")
     deep_feats = np.load(feat_all)
     color_feats = np.load(color_feat)
     with open(feat_list) as f:
