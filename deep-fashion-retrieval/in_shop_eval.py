@@ -13,19 +13,24 @@ from utils import timer_with_task
 
 @timer_with_task("Loading in-shop test feature database")
 def load_inshop_test_db():
-    feat_all = os.path.join(DATASET_BASE, 'inshop_test_all_feat.npy')
-    color_feat = os.path.join(DATASET_BASE, 'inshop_test_all_color_feat.npy')
-    feat_list = os.path.join(DATASET_BASE, 'inshop_test_all_feat.list')
+    db_dict = dict()  # dict of dataset_type: (deep_feats, color_feats, labels). For that dataset type
+    for dataset_type in ("test_gallery", "test_query"):
+        feat_all = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.npy')
+        color_feat = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_color_feat.npy')
+        feat_list = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.list')
 
-    if not all([os.path.exists(f) for f in [feat_all, color_feat, feat_list]]):
-        print("In-shop test database not found. Creating db.")
-        dump_inshop_test_db()
+        if not all([os.path.exists(f) for f in [feat_all, color_feat, feat_list]]):
+            print("In-shop test database not found. Creating db.")
+            dump_inshop_test_db()
 
-    deep_feats = np.load(feat_all)
-    color_feats = np.load(color_feat)
-    with open(feat_list) as f:
-        labels = list(map(lambda x: x.strip(), f.readlines()))
-    return deep_feats, color_feats, labels
+        deep_feats = np.load(feat_all)
+        color_feats = np.load(color_feat)
+        with open(feat_list) as f:
+            labels = list(map(lambda x: x.strip(), f.readlines()))
+
+        db_dict[dataset_type] = (deep_feats, color_feats, labels)
+
+    return db_dict
 
 
 def eval(retrieval_top_n=10):
