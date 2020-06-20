@@ -124,11 +124,14 @@ def dump(custom=False):
         print("Dumped to custom_all_class.npy, custom_all_feat.npy, custom_all_color_feat.npy and custom_all_feat.list.")
 
 
-def dump_inshop_test_db():
+def get_inshop_test_db():
+    print("Extracting features of in-shop test images.")
+    db_dict = dict()  # dataset_type: dataset_db. dataset_db is (deep_feats, color feats, labels)
+
     for dataset_type in ("test_gallery", "test_query"):
+        dataset = Fashion_inshop(type=dataset_type, transform=data_transform_test)
         loader = torch.utils.data.DataLoader(
-            Fashion_inshop(type=dataset_type, transform=data_transform_test),
-            batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+            dataset, batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
         )
 
         classes = []
@@ -136,19 +139,66 @@ def dump_inshop_test_db():
         color_feats = []
         labels = []
         dump_dataset(loader, classes, deep_feats, color_feats, labels)
+        db_dict[dataset_type] = (deep_feats, color_feats, labels)
 
-        feat_all = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.npy')
-        color_feat_all = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_color_feat.npy')
-        feat_list = os.path.join(DATASET_BASE, f'inshop_{dataset_type}_all_feat.list')
-        with open(feat_list, "w") as fw:
-            fw.write("\n".join(labels))
+    deep_feats, color_feats, labels = db_dict['test_query']
+    length = dataset.test_query_len
+    deep_feats, color_feats, labels = deep_feats[-length:], color_feats[-length:], labels[-length:]
+    query_feat_dict = {labels[i]: (deep_feats[i], color_feats[i]) for i in range(len(labels))}
 
-        np.save(feat_all, np.vstack(deep_feats))
-        np.save(color_feat_all, np.vstack(color_feats))
-        print(f"In-shop {dataset_type} dataset dumped to inshop_{dataset_type}_all_feat.npy, "
-              f"inshop_{dataset_type}_all_color_feat.npy and inshop_{dataset_type}_all_feat.list.")
+    deep_feats, color_feats, labels = db_dict['test_gallery']
+    length = dataset.test_gallery_len
+    deep_feats, color_feats, labels = deep_feats[-length:], color_feats[-length:], labels[-length:]
+
+    return query_feat_dict, (deep_feats, color_feats, labels)
 
 
+# def dump_inshop_test_db():
+#     loader = torch.utils.data.DataLoader(
+#         Fashion_inshop(type=dataset_type, transform=data_transform_test),
+#         batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+#     )
+#
+#     classes = []
+#     deep_feats = []
+#     color_feats = []
+#     labels = []
+#     dump_dataset(loader, classes, deep_feats, color_feats, labels)
+#
+#     feat_all = os.path.join(DATASET_BASE, f'inshop_test_gallery_all_feat.npy')
+#     color_feat_all = os.path.join(DATASET_BASE, f'inshop_test_gallery_all_color_feat.npy')
+#     feat_list = os.path.join(DATASET_BASE, f'inshop_test_gallery_all_feat.list')
+#     with open(feat_list, "w") as fw:
+#         fw.write("\n".join(labels))
+#
+#     np.save(feat_all, np.vstack(deep_feats))
+#     np.save(color_feat_all, np.vstack(color_feats))
+#     print(f"In-shop test_gallery dataset dumped to inshop_test_gallery_all_feat.npy, "
+#           f"inshop_test_gallery_all_color_feat.npy and inshop_test_gallery_all_feat.list.")
+#
+#
+# # Returns dictionary of query_img_path: features.
+# # Every time we want to test the in-shop retrieval performance of our model, instead of extracting features for query
+# # images one-at-a-time, it is far more efficient to create this feat_dict
+# def get_inshop_query_feat_dict():
+#     print("Extracting features of in-shop test query images.")
+#     loader = torch.utils.data.DataLoader(
+#         Fashion_inshop(type=test_query, transform=data_transform_test),
+#         batch_size=EXTRACT_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True
+#     )
+#
+#     classes = []
+#     deep_feats = []
+#     color_feats = []
+#     labels = []
+#     dump_dataset(loader, classes, deep_feats, color_feats, labels)
+#
+#     deep_feats, color_feats, labels = deep_feats[-length:], color_feats[-length:], labels[-length:]
+#     feat_dict = {labels[i]: (deep_feats[i], color_feats[i]) for i in range(len(labels))}
+#
+#     return feat_dict
+#
+#
 # Only dumps test_gallery
 # def dump_inshop_test_db():
 #     inshop_test_loader = torch.utils.data.DataLoader(

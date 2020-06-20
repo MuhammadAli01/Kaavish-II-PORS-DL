@@ -11,12 +11,20 @@ import torch.nn.functional as F
 
 
 def dump_model(model, epoch, batch_idx="final"):
-    dump_folder = os.path.join(DATASET_BASE, 'models')
+    dump_folder = os.path.join(DATASET_BASE, 'models', f'freeze={FREEZE_PARAM}', f'lr={LR}')
     if not os.path.isdir(dump_folder):
         os.mkdir(dump_folder)
-    save_path = os.path.join(dump_folder, "model_{}_{}.pth.tar".format(epoch, batch_idx))
+    save_path = os.path.join(dump_folder, f'{epoch}epochs')
     torch.save(model.state_dict(), save_path)
     return save_path
+
+# def dump_model(model, epoch, batch_idx="final"):
+#     dump_folder = os.path.join(DATASET_BASE, 'models', , f"{CATEGORIES}_categories", )
+#     if not os.path.isdir(dump_folder):
+#         os.mkdir(dump_folder)
+#     save_path = os.path.join(dump_folder, "model_{}_{}.pth.tar".format(epoch, batch_idx))
+#     torch.save(model.state_dict(), save_path)
+#     return save_path
 
 
 def load_model(path=None):
