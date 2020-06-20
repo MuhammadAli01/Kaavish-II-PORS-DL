@@ -122,6 +122,7 @@ def train(epoch):
         optimizer.step()
 
         running_loss += loss.data * TRAIN_BATCH_SIZE
+        step_no = (epoch - 1) * len(train_loader) + batch_idx
 
         if batch_idx % LOG_INTERVAL == 0:
             if TRIPLET_WEIGHT:
@@ -143,7 +144,6 @@ def train(epoch):
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                            100. * batch_idx / len(train_loader), loss.data))
 
-            step_no = (epoch - 1) * len(train_loader) + batch_idx
             writer.add_scalar('Loss/train',
                               running_loss / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
                               step_no)
@@ -153,7 +153,7 @@ def train(epoch):
             running_loss, running_correct = 0.0, 0
 
         if batch_idx % TEST_INTERVAL == 0:
-            step_no = (epoch - 1) * len(train_loader) + batch_idx
+            # step_no = (epoch - 1) * len(train_loader) + batch_idx
             # print(f'Test() called at step_no: {step_no}')
             test(step_no, full=True)
 

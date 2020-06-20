@@ -16,12 +16,12 @@ LR = 0.002
 MOMENTUM = 0.5
 # EPOCH = 10
 EPOCH = 30
-DUMPED_MODEL = ""
+DUMPED_MODEL = "model_6_2000.pth.tar"
 # DUMPED_MODEL = "model_30_final.pth.tar"
 # DUMPED_MODEL = "model_10_final.pth.tar"
 
-LOG_INTERVAL = 100
-DUMP_INTERVAL = 500
+LOG_INTERVAL = 500
+DUMP_INTERVAL = 1500
 # TEST_INTERVAL = 600  # Currently set to test after every epoch, so not needed
 
 # DATASET_BASE = r'//content/drive/My Drive/Deep Fashion Retrieval/base'

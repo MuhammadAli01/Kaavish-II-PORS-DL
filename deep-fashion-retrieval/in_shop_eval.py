@@ -12,7 +12,7 @@ from retrieval import get_deep_color_top_n
 from utils import timer_with_task
 
 
-@timer_with_task("Loading in-shop test feature database")
+# @timer_with_task("Loading in-shop test feature database")
 def load_inshop_test_db():
     db_dict = dict()  # dict of dataset_type: (deep_feats, color_feats, labels). For that dataset type
     for dataset_type in ("test_gallery", "test_query"):
@@ -34,7 +34,7 @@ def load_inshop_test_db():
     return db_dict
 
 
-def eval(retrieval_top_n=10):
+def eval(retrieval_top_n=(1, 10, 20, 50)):
     dataset = Fashion_inshop(type="test_query")
     inshop_test_db_dict = load_inshop_test_db()
 
@@ -49,12 +49,15 @@ def eval(retrieval_top_n=10):
     deep_feats, color_feats, labels = inshop_test_db_dict['test_gallery']
     deep_feats, color_feats, labels = deep_feats[-length:], color_feats[-length:], labels[-length:]
 
-    include_once = 0
-    include_zero = 0
-    include_times = 0
-    should_include_times = 0
+    result_arr = np.zeros((dataset.test_query_len, len(retrieval_top_n)))  # Stores success/failure of each retrieval
+    max_n = max(retrieval_top_n)
 
-    count_retrieved = 0
+    # include_once = 0
+    # include_zero = 0
+    # include_times = 0
+    # should_include_times = 0
+
+    # count_retrieved = 0
     for iter_id, (img, img_path) in enumerate(tqdm(dataset)):
         # print(f'item_id: {item_id}')
         # item_imgs = dataset.test_dict[item_id]
@@ -62,21 +65,28 @@ def eval(retrieval_top_n=10):
         # item_img = random.choice(item_imgs)
         # print(f'img_path: {img_path}')
         img_id = img_path.split("/")[-2]
-        # print(f'img_id: {img_id}')
-        result = get_deep_color_top_n(feat_dict[img_path], deep_feats, color_feats, labels, retrieval_top_n)
+        print(f'img_id: {img_id}')
+        # result = get_deep_color_top_n(feat_dict[img_path], deep_feats, color_feats, labels, retrieval_top_n)
+        result = get_deep_color_top_n(feat_dict[img_path], deep_feats, color_feats, labels, max_n)
         # print(f'result: {result}')
         keys = list(map(lambda x: x[0], result))
         # print(f'keys: {keys}')
         retrieved_ids = [key.split("/")[-2] for key in keys]
-        # print(f'retrieved ids: {retrieved_ids}')
+        print(f'retrieved ids: {retrieved_ids}')
 
-        if img_id in retrieved_ids:
-            count_retrieved += 1
-            # print('Sucessful retrieval\n')
-        # else:
-        #     print("Unsuccessful\n")
-        # included = list(map(lambda x: x in item_imgs, keys))
-        # print(f'included: {included}', '\n')
+        for ix, n in enumerate(retrieval_top_n):
+            if img_id in retrieved_ids[:n]:
+                # count_retrieved += 1
+                result_arr[iter_id, ix:] = 1  # Set entries corresponding to values of n >= current n. To 1.
+                # print('Sucessful retrieval\n')
+                print(f"n={n} Successful")
+                break
+            else:
+                print(f"n={n} Unsuccessful")
+            #     print("Unsuccessful\n")
+            # included = list(map(lambda x: x in item_imgs, keys))
+            # print(f'included: {included}', '\n')
+        print(result_arr[iter_id])
 
         # if included.count(True) >= 2:
         #     count_retrieved += 1
@@ -96,9 +106,16 @@ def eval(retrieval_top_n=10):
             #       include_once, include_once + include_zero,
             #       include_times, should_include_times))
 
-    accuracy = count_retrieved / len(dataset)
-    print(f'n = {retrieval_top_n}. Accuracy = {(accuracy * 100):.2f}%.')
-    return accuracy
+    # accuracy = count_retrieved / len(dataset)
+
+    # Get count of successful retrieval for each value of n by summing the corresponding column and compute accuracy.
+    accuracy_dict = dict()  # dict of n: accuracy
+    for n, count_retrieved in zip(retrieval_top_n, result_arr.sum(axis=0)):
+        accuracy = count_retrieved / len(dataset)
+        print(f'n = {retrieval_top_n}. Accuracy = {(accuracy * 100):.2f}%.')
+        accuracy_dict[n] = accuracy * 100
+
+    return accuracy_dict
     # return include_times, should_include_times, include_once, include_zero
 
 # def eval(retrieval_top_n=10):
