@@ -59,7 +59,20 @@ if ENABLE_INSHOP_DATASET:
 model = f_model(freeze_param=FREEZE_PARAM, model_path=DUMPED_MODEL).cuda(GPU_ID)
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=LR, momentum=MOMENTUM)
 
-writer = SummaryWriter(log_dir=f"runs/transfer/50_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/30 epochs/{datetime.now().strftime('%b%d_%H-%M-%S')}")
+if DUMPED_MODEL:
+    start_epoch = int(DUMPED_MODEL.split('/')[-1].split('_')[0]) + 1
+else:
+    start_epoch = 1
+# print(f"start_epoch: {start_epoch}")
+
+# if not DUMPED_MODEL:
+#     writer = SummaryWriter(log_dir=f"runs/f'freeze={FREEZE_PARAM}'/50_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{EPOCH}epochs/{datetime.now().strftime('%b%d_%H-%M-%S')}")
+# else:
+#     writer = SummaryWriter(
+#         log_dir=f"runs/f'freeze={FREEZE_PARAM}'/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{EPOCH}epochs/{DUMPED_MODEL}")
+
+writer = SummaryWriter(log_dir=f"runs/f'freeze={FREEZE_PARAM}'/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}"
+                               f"/lr={LR}/{EPOCH}epochs")
 
 
 def train(epoch):
@@ -75,8 +88,12 @@ def train(epoch):
         triplet_in_shop_loader_iter = iter(triplet_in_shop_loader)
 
     TEST_INTERVAL = len(train_loader)
+    DUMP_INTERVAL = TEST_INTERVAL
 
     running_loss = 0.0
+    if TRIPLET_WEIGHT:
+        running_clf_loss = 0.0
+        running_triplet_loss = 0.0
     running_correct = 0
 
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -122,6 +139,10 @@ def train(epoch):
         optimizer.step()
 
         running_loss += loss.data * TRAIN_BATCH_SIZE
+        if TRIPLET_WEIGHT:
+            running_clf_loss += classification_loss.data.item() * TRAIN_BATCH_SIZE
+            running_triplet_loss += triplet_loss.data.item() * TRIPLET_BATCH_SIZE
+
         step_no = (epoch - 1) * len(train_loader) + batch_idx
 
         if batch_idx % LOG_INTERVAL == 0:
@@ -133,12 +154,20 @@ def train(epoch):
                     100. * batch_idx / len(train_loader), loss.data, triplet_type,
                     # triplet_loss.data[0], classification_loss.data[0]))
                     triplet_loss.data.item(), classification_loss.data.item()))
-                writer.add_scalar('Loss/triplet',
-                                  triplet_loss.data.item() / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
+
+                if ENABLE_INSHOP_DATASET:
+                    writer.add_scalar('Loss/train/triplet',
+                                      running_triplet_loss / (LOG_INTERVAL * TRIPLET_BATCH_SIZE * INSHOP_DATASET_PRECENT),
+                                      step_no)
+                else:
+                    writer.add_scalar('Loss/train/triplet',
+                                      running_triplet_loss / (LOG_INTERVAL * TRIPLET_BATCH_SIZE), step_no)
+
+                writer.add_scalar('Loss/train/classification',
+                                  running_clf_loss / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
                                   step_no)
-                writer.add_scalar('Loss/classification',
-                                  classification_loss.data.item() / (LOG_INTERVAL * TRAIN_BATCH_SIZE),
-                                  step_no)
+                running_triplet_loss, running_clf_loss = 0.0, 0.0
+
             else:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tClassification Loss: {:.4f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
@@ -153,7 +182,6 @@ def train(epoch):
             running_loss, running_correct = 0.0, 0
 
         if batch_idx % TEST_INTERVAL == 0:
-            # step_no = (epoch - 1) * len(train_loader) + batch_idx
             # print(f'Test() called at step_no: {step_no}')
             test(step_no, full=True)
 
@@ -249,5 +277,5 @@ def get_conf_matrix():
 
 
 if __name__ == "__main__":
-    for epoch in range(1, EPOCH + 1):
+    for epoch in range(start_epoch, EPOCH + 1):
         train(epoch)

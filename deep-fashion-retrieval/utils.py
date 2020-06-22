@@ -13,13 +13,18 @@ import torch.nn.functional as F
 def dump_model(model, epoch, batch_idx="final"):
     dump_folder = os.path.join(DATASET_BASE, 'models', f'freeze={FREEZE_PARAM}', f'lr={LR}')
     if not os.path.isdir(dump_folder):
-        os.mkdir(dump_folder)
-    save_path = os.path.join(dump_folder, f'{epoch}epochs')
+        os.makedirs(dump_folder)
+    save_path = os.path.join(dump_folder, f'{epoch}_epochs')
+    # checkpoint = {
+    #     'epoch': epoch,
+    #     'state_dict': model.state_dict()
+    #     # ,optimizer': optimizer.state_dict()
+    # }
     torch.save(model.state_dict(), save_path)
     return save_path
 
 # def dump_model(model, epoch, batch_idx="final"):
-#     dump_folder = os.path.join(DATASET_BASE, 'models', , f"{CATEGORIES}_categories", )
+#     dump_folder = os.path.join(DATASET_BASE, 'models')
 #     if not os.path.isdir(dump_folder):
 #         os.mkdir(dump_folder)
 #     save_path = os.path.join(dump_folder, "model_{}_{}.pth.tar".format(epoch, batch_idx))
@@ -28,9 +33,11 @@ def dump_model(model, epoch, batch_idx="final"):
 
 
 def load_model(path=None):
+    # print(f"load_model called with path {path}")
     if not path:
         return None
     full = os.path.join(DATASET_BASE, 'models', path)
+    # print(f"full path {full}")
     for i in [path, full]:
         if os.path.isfile(i):
             print(f'Loading model {path}')
