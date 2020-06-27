@@ -86,6 +86,11 @@ def eval(retrieval_top_n=(1, 10, 20, 50)):
     return accuracy_dict
 
 
+# def get_eval_graph():
+#     acc_dict = eval(retrieval_top_n=list(range(1, 51)))
+#
+
+
 # def eval(retrieval_top_n=10):
 #     dataset = Fashion_inshop()
 #     length = dataset.test_len

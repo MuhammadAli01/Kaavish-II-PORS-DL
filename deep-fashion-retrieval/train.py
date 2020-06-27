@@ -63,6 +63,7 @@ if DUMPED_MODEL:
     start_epoch = int(DUMPED_MODEL.split('/')[-1].split('_')[0]) + 1
 else:
     start_epoch = 1
+# start_epoch = 1
 # print(f"start_epoch: {start_epoch}")
 
 # if not DUMPED_MODEL:
@@ -71,8 +72,8 @@ else:
 #     writer = SummaryWriter(
 #         log_dir=f"runs/f'freeze={FREEZE_PARAM}'/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{EPOCH}epochs/{DUMPED_MODEL}")
 
-writer = SummaryWriter(log_dir=f"runs/f'freeze={FREEZE_PARAM}'/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}"
-                               f"/lr={LR}/{EPOCH}epochs")
+writer = SummaryWriter(log_dir=f"runs/freeze={FREEZE_PARAM}/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}"
+                               f"/lr={LR}")
 
 
 def train(epoch):

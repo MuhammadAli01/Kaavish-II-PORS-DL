@@ -9,8 +9,10 @@ import random
 
 from config import *
 
+# ALLOWED_CATEGORIES = list(range(1, CATEGORIES + 1))
 # ALLOWED_CATEGORIES = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 26, 29, 32, 34, 35, 36, 39, 47]
 # CATEGORY_TO_INDEX = {cat: i for i, cat in enumerate(ALLOWED_CATEGORIES)}
+
 
 class Fashion_attr_prediction(data.Dataset):
     def __init__(self, type="train", transform=None, target_transform=None, crop=False, img_path=None, custom=False):
@@ -69,10 +71,12 @@ class Fashion_attr_prediction(data.Dataset):
         category_img_pairs = self.read_lines(list_category_img)
         for k, v in category_img_pairs:
             v = int(v)
-            self.anno[k] = v - 1
-            # Uncomment section if you only want to train on first 20 categories
-            # if v <= 20:
-            #     self.anno[k] = v - 1
+            # self.anno[k] = v - 1
+            if CATEGORIES == 20:
+                if v <= 20:
+                    self.anno[k] = v - 1
+            else:
+                self.anno[k] = v - 1
             # Uncomment section if you only want to train on ALLOWED_CATEGORIES
             # if v in ALLOWED_CATEGORIES:
             #     # self.anno[k] = v - 1    # image_name: category_id-1
@@ -213,11 +217,12 @@ class Fashion_inshop(data.Dataset):
 
     def readcloth(self):
         lines = self.read_lines(os.path.join(DATASET_BASE, 'in_shop', 'list_bbox_inshop.txt'))
-        if CATEGORIES == 20:  # Only read tops
-            valid_lines = list(filter(lambda x: x[1] == '1', lines))
-            names = set(list(map(lambda x: x[0], valid_lines)))
-        else:  # Read clothes of all 3 types (upper-body clothes, lower-body clothes, full-body clothes)
-            names = set(x[0] for x in lines)
+        # if CATEGORIES == 20:  # Only read tops
+        #     valid_lines = list(filter(lambda x: x[1] == '1', lines))
+        #     names = set(list(map(lambda x: x[0], valid_lines)))
+        # else:  # Read clothes of all 3 types (upper-body clothes, lower-body clothes, full-body clothes)
+        #     names = set(x[0] for x in lines)
+        names = set(x[0] for x in lines)
         return names
 
     def read_train_test(self):
