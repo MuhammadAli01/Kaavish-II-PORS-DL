@@ -13,14 +13,18 @@ from sklearn.externals import joblib
 
 
 @timer_with_task("Loading model")
-def load_test_model():
+def load_test_model(with_clsf=False):
     if not os.path.isfile(DUMPED_MODEL) and not os.path.isfile(os.path.join(DATASET_BASE, "models", DUMPED_MODEL)):
         print("No trained model file!")
         return
     main_model = f_model(model_path=DUMPED_MODEL).cuda(GPU_ID)
     color_model = c_model().cuda(GPU_ID)
     pooling_model = p_model().cuda(GPU_ID)
-    extractor = FeatureExtractor(main_model, color_model, pooling_model)
+
+    if not with_clsf:
+        extractor = FeatureExtractor(main_model, color_model, pooling_model)
+    else:
+        extractor = FeatureExtractorWithClassification(main_model, color_model, pooling_model)
     return extractor
 
 # Original function
@@ -122,14 +126,14 @@ def kmeans_query(clf, features, deep_feats, color_feats, labels, retrieval_top_n
 
 
 @timer_with_task("Extracting image feature")
-def dump_single_feature(img_path, extractor, custom=False):
+def dump_single_feature(img_path, extractor, custom=False, with_clsf=False):
     paths = [img_path, os.path.join(DATASET_BASE, img_path), os.path.join(DATASET_BASE, 'in_shop', img_path)]
     # print(f'paths: {paths}')
     for i in paths:
         if not os.path.isfile(i):
             continue
-        print(f'img_path: {i}')
-        print(f'Custom: {custom}')
+        # print(f'img_path: {i}')
+        # print(f'Custom: {custom}')
         if custom:
             single_loader = torch.utils.data.DataLoader(
             Fashion_attr_prediction(type="single", img_path=i, crop=True, transform=data_transform_test, custom=True),
@@ -143,10 +147,18 @@ def dump_single_feature(img_path, extractor, custom=False):
             )
         data = list(single_loader)[0]   # Get loaded image as tensor 
         data = Variable(data).cuda(GPU_ID)
-        deep_feat, color_feat = extractor(data)
-        deep_feat = deep_feat[0].squeeze()
-        color_feat = color_feat[0]
-        return deep_feat, color_feat
+
+        if not with_clsf:
+            deep_feat, color_feat = extractor(data)
+            deep_feat = deep_feat[0].squeeze()
+            color_feat = color_feat[0]
+            return deep_feat, color_feat
+        else:
+            cls, deep_feat, color_feat = extractor(data)
+            class_n = cls.argmax() + 1
+            deep_feat = deep_feat[0].squeeze()
+            color_feat = color_feat[0]
+            return class_n, deep_feat, color_feat
     return None
 
 

@@ -72,8 +72,10 @@ else:
 #     writer = SummaryWriter(
 #         log_dir=f"runs/f'freeze={FREEZE_PARAM}'/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}/lr={LR}/{EPOCH}epochs/{DUMPED_MODEL}")
 
+# writer = SummaryWriter(log_dir=f"runs/freeze={FREEZE_PARAM}/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}"
+#                                f"/lr={LR}")
 writer = SummaryWriter(log_dir=f"runs/freeze={FREEZE_PARAM}/{CATEGORIES}_categories/inshop={ENABLE_INSHOP_DATASET}"
-                               f"/lr={LR}")
+                               f"/lr={LR}/with_eastern")
 
 
 def train(epoch):

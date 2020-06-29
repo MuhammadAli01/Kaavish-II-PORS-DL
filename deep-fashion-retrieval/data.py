@@ -69,6 +69,7 @@ class Fashion_attr_prediction(data.Dataset):
         list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img.txt')
         partition_pairs = self.read_lines(list_eval_partition)
         category_img_pairs = self.read_lines(list_category_img)
+
         for k, v in category_img_pairs:
             v = int(v)
             # self.anno[k] = v - 1
@@ -77,6 +78,8 @@ class Fashion_attr_prediction(data.Dataset):
                     self.anno[k] = v - 1
             else:
                 self.anno[k] = v - 1
+                if v == 38:
+                    print(k)
             # Uncomment section if you only want to train on ALLOWED_CATEGORIES
             # if v in ALLOWED_CATEGORIES:
             #     # self.anno[k] = v - 1    # image_name: category_id-1
@@ -119,6 +122,7 @@ class Fashion_attr_prediction(data.Dataset):
             lines = fin.readlines()[2:]
             lines = list(filter(lambda x: len(x) > 0, lines))
             pairs = list(map(lambda x: x.strip().split(), lines))
+            pairs = [pair for pair in pairs if pair != []]
         return pairs
 
     def read_crop(self, img_path):
