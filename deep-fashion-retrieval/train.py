@@ -106,6 +106,9 @@ def train(epoch):
         outputs = model(data)[0]
         classification_loss = criterion_c(outputs, target)
 
+        if classification_loss > 10:
+            print(outputs, target)
+
         pred = outputs.data.max(1, keepdim=True)[1]  # Tensor of dim (test_batch_size, 1)
         running_correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 

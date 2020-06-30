@@ -155,7 +155,18 @@ def dump_single_feature(img_path, extractor, custom=False, with_clsf=False):
             return deep_feat, color_feat
         else:
             cls, deep_feat, color_feat = extractor(data)
-            class_n = cls.argmax() + 1
+
+            list_bbox_eastern = os.path.join(DATASET_BASE, r'scrapped', 'list_bbox_scrapped_eastern.txt')
+            with open(list_bbox_eastern) as fin:
+                lines = fin.readlines()[2:]
+                lines = list(filter(lambda x: len(x) > 0, lines))
+                pairs = list(map(lambda x: x.strip().split(), lines))
+                eastern_pths = set(os.path.join(DATASET_BASE, pair[0]) for pair in pairs)
+                if img_path in eastern_pths or os.path.join(DATASET_BASE, img_path) in eastern_pths:
+                    class_n = 38
+                else:
+                    class_n = cls.argmax() + 1
+
             deep_feat = deep_feat[0].squeeze()
             color_feat = color_feat[0]
             return class_n, deep_feat, color_feat

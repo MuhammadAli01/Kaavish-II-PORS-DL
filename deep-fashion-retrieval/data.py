@@ -31,28 +31,25 @@ class Fashion_attr_prediction(data.Dataset):
                 self.bbox = dict()
                 self.read_bbox(custom=True)
             return
-        self.train_list = []
-        self.train_dict = {i: [] for i in range(CATEGORIES)}
+        self.train_list = []  # relative paths of train imgs
+        self.train_dict = {i: [] for i in range(CATEGORIES)}  # category-1: img_paths of imgs with that that
         # self.train_dict = {i: [] for i in [x - 1 for x in ALLOWED_CATEGORIES]}
-        self.test_list = []
+        self.test_list = []  # relative paths of test imgs. both test and val imgs in deepfashion are put here.
         self.all_list = []
-        self.bbox = dict()
-        self.anno = dict()
+        self.bbox = dict()  # full_img_path: bbox
+        self.anno = dict()  # relative_img_path: category
 
         if type == "all" and custom:
             self.read_bbox(scrapped=True)
             self.all_list = list(self.bbox.keys())
-            print(f'all_list: {self.all_list}')
+            # print(f'all_list: {self.all_list}')
         else:
             self.read_partition_category()
             self.read_bbox()
-
-
         # if not custom:
         #     self.read_partition_category()
         # else:
         #     self.read_scrapped()  # read list of scrapped imgs into self.all_list
-
 
     def __len__(self):
         if self.type == "all":
@@ -78,8 +75,6 @@ class Fashion_attr_prediction(data.Dataset):
                     self.anno[k] = v - 1
             else:
                 self.anno[k] = v - 1
-                if v == 38:
-                    print(k)
             # Uncomment section if you only want to train on ALLOWED_CATEGORIES
             # if v in ALLOWED_CATEGORIES:
             #     # self.anno[k] = v - 1    # image_name: category_id-1
@@ -93,8 +88,8 @@ class Fashion_attr_prediction(data.Dataset):
                 else:
                     # Test and Val
                     self.test_list.append(k)
-        # a = {cat: len(self.train_dict[cat]) for cat in self.train_dict}
-        # print(f'train_dict: {a}')
+        a = {cat: len(self.train_dict[cat]) for cat in self.train_dict}
+        print(f'train_dict: {a}')
         self.all_list = self.test_list + self.train_list
         # print('train_list: ', self.train_list)
         # print('test_list: ', self.test_list)
@@ -110,7 +105,6 @@ class Fashion_attr_prediction(data.Dataset):
             list_bbox = os.path.join(DATASET_BASE, r'scrapped', 'list_bbox_scrapped.txt')
         else:
             list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox.txt')
-            # list_bbox = os.path.join(DATASET_BASE, r'list_bbox.txt')
         pairs = self.read_lines(list_bbox)
         for k, x1, y1, x2, y2 in pairs:
             img_full_path = os.path.join(DATASET_BASE, k)
@@ -154,6 +148,8 @@ class Fashion_attr_prediction(data.Dataset):
             #         print(f'{k}: {len(v)}')
             # print(f'choice: {random.choice(list(filter(lambda x: x != target, range(20))))}')
             img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target, range(20))))])
+            # img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target,
+            #                                                                 [cat for cat in range(CATEGORIES) if self.train_dict[cat] != []])))])
             # print(f'img_n: {img_n}')
             img = self.read_crop(img_path)
             img_p = self.read_crop(img_p)

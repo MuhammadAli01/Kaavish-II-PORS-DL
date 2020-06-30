@@ -16,11 +16,11 @@ LR = 0.002
 MOMENTUM = 0.5
 # EPOCH = 10
 EPOCH = 40
-# DUMPED_MODEL = ""
+DUMPED_MODEL = ""
 # DUMPED_MODEL = "model_10_final.pth.tar"
-DUMPED_MODEL = "freeze=False/lr=0.001/29_epochs"
+# DUMPED_MODEL = "freeze=False/lr=0.001/29_epochs"
 
-LOG_INTERVAL = 10
+LOG_INTERVAL = 1
 # LOG_INTERVAL = 500
 # DUMP_INTERVAL = 1500  # Currently set to dump after every epoch, so not needed
 # TEST_INTERVAL = 600  # Currently set to test after every epoch, so not needed
