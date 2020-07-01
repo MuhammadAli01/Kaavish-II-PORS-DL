@@ -38,7 +38,7 @@ train_loader = torch.utils.data.DataLoader(
     Fashion_attr_prediction(type="train", transform=data_transform_train),
     batch_size=TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, drop_last=True
 )
-print(f"len(train_loader): {len(train_loader)}")
+# print(f"len(train_loader): {len(train_loader)}")
 
 test_loader = torch.utils.data.DataLoader(
     Fashion_attr_prediction(type="test", transform=data_transform_test),
@@ -84,9 +84,11 @@ def train(epoch):
     else:
         criterion_t = nn.TripletMarginLoss()
     triplet_loader_iter = iter(triplet_loader)
+    # print(f'triplet_loader_iter: {triplet_loader_iter}')
     triplet_type = 0
     if ENABLE_INSHOP_DATASET:
         triplet_in_shop_loader_iter = iter(triplet_in_shop_loader)
+        # print(f'triplet_inshop_loader_iter: {triplet_in_shop_loader_iter}')
 
     TEST_INTERVAL = len(train_loader)
     DUMP_INTERVAL = TEST_INTERVAL

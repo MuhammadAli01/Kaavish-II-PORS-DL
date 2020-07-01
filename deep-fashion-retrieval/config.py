@@ -20,8 +20,8 @@ EPOCH = 40
 # DUMPED_MODEL = "model_10_final.pth.tar"
 DUMPED_MODEL = "freeze=False/lr=0.001/29_epochs"
 
-# LOG_INTERVAL = 5
-LOG_INTERVAL = 500
+LOG_INTERVAL = 10
+# LOG_INTERVAL = 500
 # DUMP_INTERVAL = 1500  # Currently set to dump after every epoch, so not needed
 # TEST_INTERVAL = 600  # Currently set to test after every epoch, so not needed
 
@@ -33,8 +33,8 @@ INSHOP_DATASET_PRECENT = 0.8
 IMG_SIZE = 256
 CROP_SIZE = 224
 INTER_DIM = 512
-CATEGORIES = 20
-# CATEGORIES = 50
+# CATEGORIES = 20
+CATEGORIES = 50
 N_CLUSTERS = 50
 COLOR_TOP_N = 10
 TRIPLET_WEIGHT = 2.0

@@ -36,8 +36,8 @@ class Fashion_attr_prediction(data.Dataset):
         # self.train_dict = {i: [] for i in [x - 1 for x in ALLOWED_CATEGORIES]}
         self.test_list = []
         self.all_list = []
-        self.bbox = dict()
-        self.anno = dict()
+        self.bbox = dict()  # img_full_path: bbox
+        self.anno = dict()  # img_path: category-1
 
         if type == "all" and custom:
             self.read_bbox(scrapped=True)
@@ -46,18 +46,15 @@ class Fashion_attr_prediction(data.Dataset):
         else:
             self.read_partition_category()
             self.read_bbox()
-
-
         # if not custom:
         #     self.read_partition_category()
         # else:
         #     self.read_scrapped()  # read list of scrapped imgs into self.all_list
 
-
     def __len__(self):
         if self.type == "all":
             return len(self.all_list)
-        elif self.type == "train":
+        elif self.type in ["train", "triplet"]:
             return len(self.train_list)
         elif self.type == "test":
             return len(self.test_list)
@@ -149,8 +146,16 @@ class Fashion_attr_prediction(data.Dataset):
             # for k, v in self.train_dict.items():
             #         print(f'{k}: {len(v)}')
             # print(f'choice: {random.choice(list(filter(lambda x: x != target, range(20))))}')
-            img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target, range(20))))])
-            # print(f'img_n: {img_n}')
+            classes_with_imgs = [cls for cls in self.train_dict.keys() if self.train_dict[cls]]
+            # print(f'classes_with_imgs: {classes_with_imgs}')
+            # img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target, range(20))))])
+            img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target,
+                                                                            classes_with_imgs)))])
+            # print(f'index: {index}')
+            # print(f'img_path: {img_path}')
+            # print(f'img_p: {img_p}')
+            # print(f'img_n: {img_n}\n')
+
             img = self.read_crop(img_path)
             img_p = self.read_crop(img_p)
             img_n = self.read_crop(img_n)
@@ -172,6 +177,7 @@ class Fashion_attr_prediction(data.Dataset):
             img_path = self.all_list[index]
         elif self.type == "train":
             img_path = self.train_list[index]
+            # print(f'train_index: {index}')
         else:
             img_path = self.test_list[index]
         # target = self.anno[img_path]
@@ -308,6 +314,7 @@ class Fashion_inshop(data.Dataset):
         # s_d = self.train_dict if self.type == 'train' else self.test_dict
         # s_l = self.train_list if self.type == 'train' else self.test_list
         elif self.type == 'train':
+            # print(f'item: {item}')
             s_d = self.train_dict
             s_l = self.train_list
             imgs = s_d[s_l[item]]
