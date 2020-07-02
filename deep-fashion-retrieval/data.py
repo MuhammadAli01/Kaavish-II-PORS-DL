@@ -42,7 +42,7 @@ class Fashion_attr_prediction(data.Dataset):
         if type == "all" and custom:
             self.read_bbox(scrapped=True)
             self.all_list = list(self.bbox.keys())
-            print(f'all_list: {self.all_list}')
+            # print(f'all_list: {self.all_list}')
         else:
             self.read_partition_category()
             self.read_bbox()
@@ -62,8 +62,15 @@ class Fashion_attr_prediction(data.Dataset):
             return 1
 
     def read_partition_category(self):
-        list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition.txt')
-        list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img.txt')
+        # list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition.txt')
+        # list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img.txt')
+
+        # list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition_eastern.txt')
+        # list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img_eastern.txt')
+
+        list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition_eastern1.txt')
+        list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img_eastern1.txt')
+
         partition_pairs = self.read_lines(list_eval_partition)
         category_img_pairs = self.read_lines(list_category_img)
         for k, v in category_img_pairs:
@@ -103,8 +110,9 @@ class Fashion_attr_prediction(data.Dataset):
         elif scrapped:
             list_bbox = os.path.join(DATASET_BASE, r'scrapped', 'list_bbox_scrapped.txt')
         else:
-            list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox.txt')
-            # list_bbox = os.path.join(DATASET_BASE, r'list_bbox.txt')
+            # list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox.txt')
+            # list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox_eastern.txt')
+            list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox_eastern1.txt')
         pairs = self.read_lines(list_bbox)
         for k, x1, y1, x2, y2 in pairs:
             img_full_path = os.path.join(DATASET_BASE, k)
